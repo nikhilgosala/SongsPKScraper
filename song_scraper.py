@@ -2,16 +2,18 @@
 
 __author__      = "Nikhil Bharadwaj"
 __license__     = "MIT License"
+__version__     = "Python 3.5"
 
 import sys, os, requests, warnings
 from bs4 import BeautifulSoup
 import urllib.request
 
+error_count_alphabet = 0         #Keeps a track of number of errors in getting all the movies of a given alphabet
 error_count = 0                 #Keeps a track of number of errors for a given movie
 error_count_download = 0        #Keeps a track of number of errors for a given song
-DOWNLOADPATH = os.path.expanduser('C:/Users/NikhilBharadwaj/Desktop/SongsPK')           #Default download path
+DOWNLOADPATH = os.path.expanduser('~/Desktop/SongsPK')           #Default download path
 
-############################################################## FUNCTION TO DOWNLOAD ALL SONGS FROM A URL ##################################################
+############################################################## FUNCTION TO GET ALL SONGS FROM A WEBPAGE ##################################################
 
 def downloadMovieSongs(movie_url):
     """Download songs from URL of movie"""
@@ -40,7 +42,7 @@ def downloadMovieSongs(movie_url):
             return
         
         while(error_count < 10):
-            print("Error connecting to server...Retrying\n")
+            print("(downloadMovieSongs) Error connecting to server...Retrying\n")
             error_count += 1
             downloadMovieSongs(movie_url)       #Retry for 10 times
 
@@ -79,7 +81,7 @@ def save_mp3(link, filename):
         
         os.remove(fullpath)                             #Delete any incomplete files
         while(error_count_download < 10):
-            print("Error connecting to server...Retrying\n")
+            print("(save_mp3) Error connecting to server...Retrying\n")
             error_count_download += 1
             save_mp3(link, filename)
 
@@ -149,40 +151,54 @@ def song_alert(song_name):
 
     song_alert_file.close();
 
-############################################################## FUNCTION TO DOWNLOAD ALL SONGS OF A GIVEN MOVIE ##################################################
+############################################################## FUNCTION TO GET ALL THE MOVIES OF THE GIVEN ALPHABET ##################################################
         
 def downloadAlphabetSongs(first_alphabet):
-    """Download all the songs of the given Movie"""
+    """Geat all the movies of a given alphabet"""
     global error_count
-
-    url = "http://www.songspk.link/%s_list.html" % first_alphabet
-    headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0' }
-    url_html = requests.get(url, timeout=100, headers = headers).content     #Gets the HTML code of webpage pointed to by url
-    print("Source Code Obtained")
+    global error_count_alphabet
     
-    alphabet_movie_list = {}    #Stores the MovieID (Generated Locally) and Name 
-    count = 0       #Keeps a count of number of movies starting with given alphabet
-
-    for movie_url in get_movie_names(url_html):
-        if not movie_url.startswith('..'):
-            alphabet_movie_list[str(count)] = movie_url
-            count = count + 1
-
-    movie_url = ""      #Stores the Movie URL
-    for movie_id in alphabet_movie_list:
-        error_count = 0             #Reset error count for each movie
+    try:
+        url = "http://www.songspk.link/%s_list.html" % first_alphabet
+        headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0' }
+        url_html = requests.get(url, timeout=100, headers = headers).content     #Gets the HTML code of webpage pointed to by url
+        print("Source Code Obtained")
         
-        if not alphabet_movie_list[movie_id].startswith('http://'):         #Some movies have the complete URL. Omitting those
-            if not alphabet_movie_list[movie_id] == '#':                    #Some movies have no URL. They have only #. Omitting those
-                movie_url = "http://songspk.link/%s" % alphabet_movie_list[movie_id]
-        downloadMovieSongs(movie_url)
+        alphabet_movie_list = {}    #Stores the MovieID (Generated Locally) and Name 
+        count = 0       #Keeps a count of number of movies starting with given alphabet
 
+        for movie_url in get_movie_names(url_html):
+            if not movie_url.startswith('..'):
+                alphabet_movie_list[str(count)] = movie_url
+                count = count + 1
+
+        movie_url = ""      #Stores the Movie URL
+        for movie_id in alphabet_movie_list:
+            error_count = 0             #Reset error count for each movie
+            
+            if not alphabet_movie_list[movie_id].startswith('http://'):         #Some movies have the complete URL. Omitting those
+                if not alphabet_movie_list[movie_id] == '#':                    #Some movies have no URL. They have only #. Omitting those
+                    movie_url = "http://songspk.link/%s" % alphabet_movie_list[movie_id]
+            downloadMovieSongs(movie_url)
+
+    except:
+        if(error_count_alphabet >= 10):         #End program if it could not download the movie list in 10 tries
+            print("Error count exceeded. Please check your internet connection\n")
+            return       
+
+        while(error_count_alphabet < 10):
+            error_count_alphabet += 1
+            print("Error fetching the movies of the given alphabet...Retrying\n")
+            downloadAlphabetSongs(first_alphabet)
 
 ##############################################################    MAIN   ############################################################################
 
 first_alphabet = input("Enter the first alphabet of the movies whose songs you want to download [a-z] or 'numeric'\n")
 error_count = 0
 error_count_download = 0
+error_count_alphabet = 0
+if not os.path.exists(DOWNLOADPATH):
+    os.mkdir(DOWNLOADPATH)
 downloadAlphabetSongs(first_alphabet);
     
     
