@@ -1,6 +1,6 @@
-"""song_scraper.py: Downloads all the songs of movies starting with a given alphabet."""
+"""song_scraper.py: Downloads all the songs of Ghazal singers from SongsPK."""
 
-__author__      = "Nikhil Bharadwaj"
+zz__author__    = "Nikhil Bharadwaj"
 __license__     = "MIT License"
 __version__     = "Python 3.5"
 
@@ -11,7 +11,7 @@ import urllib.request
 error_count_alphabet = 0         #Keeps a track of number of errors in getting all the movies of a given alphabet
 error_count = 0                 #Keeps a track of number of errors for a given movie
 error_count_download = 0        #Keeps a track of number of errors for a given song
-DOWNLOADPATH = os.path.expanduser('~/Desktop/SongsPK')           #Default download path...This directory must be present...Else we get errors!
+DOWNLOADPATH = os.path.expanduser('~/Desktop/SongsPK_Ghazals')           #Default download path...This directory must be present...Else we get errors!
 
 ############################################################## FUNCTION TO GET ALL SONGS FROM A WEBPAGE ##################################################
 
@@ -93,13 +93,14 @@ def url_resolver(url):
     opener = urllib.request.build_opener()
     opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0')]
     res = opener.open(urllib.request.Request(url))  # Resolve the redirects and gets the song
+    print(res.geturl())
     return res, res.geturl()
 
 ############################################################## FUNCTION TO GET ALL MOVIE NAMES FROM A WEBPAGE ##################################################
 
 def get_movie_names(url_data):
     """Get all the movies from the webpage"""
-    blacklist = ["bollywood_music_compilations", "artists", "compilations", "bhangra"]
+    blacklist = ["bollywood_music_compilations", "compilations", "bhangra"]
     flag = True
 
     movie_list = []
@@ -137,7 +138,6 @@ def get_movie_names(url_data):
                 movie_list.append(a.get('href', None))"""
 
     print("Movie Names Obtained")
-    print(movie_list)
     return movie_list
 
 ############################################################## FUNCTION TO GET ALL THE SONG NAMES FROM A WEBPAGE ##################################################
@@ -182,13 +182,13 @@ def song_alert(song_name):
 
 ############################################################## FUNCTION TO GET ALL THE MOVIES OF THE GIVEN ALPHABET ##################################################
         
-def downloadAlphabetSongs(first_alphabet):
-    """Geat all the movies of a given alphabet"""
+def downloadAlphabetSongs():
+    """Get all the albums of all the Ghazal Singers"""
     global error_count
     global error_count_alphabet
     
     #try:
-    url = "http://www.songspk.link/%s_list.html" % first_alphabet
+    url = "http://www.songspk.link/ghazals.html"
     headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0' }
     url_html = requests.get(url, timeout=100, headers = headers).content     #Gets the HTML code of webpage pointed to by url
     print("Source Code Obtained")
@@ -225,12 +225,12 @@ def downloadAlphabetSongs(first_alphabet):
 
 ##############################################################    MAIN   ############################################################################
 
-first_alphabet = input("Enter the first alphabet of the movies whose songs you want to download [a-z] or 'numeric'\n")
+#first_alphabet = input("Enter the first alphabet of the movies whose songs you want to download [a-z] or 'numeric'\n")
 error_count = 0
 error_count_download = 0
 error_count_alphabet = 0
 if not os.path.exists(DOWNLOADPATH):
     os.mkdir(DOWNLOADPATH)
-downloadAlphabetSongs(first_alphabet);
+downloadAlphabetSongs();
     
     

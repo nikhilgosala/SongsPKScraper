@@ -33,7 +33,7 @@ def downloadMovieSongs(movie_url):
 
             if(resolved_url.endswith(".mp3") and not resolved_url.startswith("..")):     #Check if the URL pointed to is a song 
                 save_mp3(res, resolved_url.split('/')[-1])
-                #error_count = 0
+                error_count = 0
     except:
         if (error_count >= 10):           #This is the recursion break condition
             print("Error count exceeded. Adding to Movie Alert")
@@ -42,7 +42,7 @@ def downloadMovieSongs(movie_url):
             return
         
         elif(error_count < 10):
-            print("(downloadMovieSongs) Error connecting to server...Retrying\n")
+            print("(save_mp3) Error connecting to server...Retrying\n")
             error_count += 1
             downloadMovieSongs(movie_url)       #Retry for 10 times
 
@@ -81,7 +81,6 @@ def save_mp3(link, filename):
             return
                                
         elif(error_count_download < 10):
-            print(movie_url)
             print("(save_mp3) Error connecting to server...Retrying\n")
             error_count_download += 1
             save_mp3(link, filename)
@@ -91,7 +90,7 @@ def save_mp3(link, filename):
 def url_resolver(url):
     """Find the path of redirection of the URL"""
     opener = urllib.request.build_opener()
-    opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0')]
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
     res = opener.open(urllib.request.Request(url))  # Resolve the redirects and gets the song
     return res, res.geturl()
 
@@ -99,45 +98,17 @@ def url_resolver(url):
 
 def get_movie_names(url_data):
     """Get all the movies from the webpage"""
-    blacklist = ["bollywood_music_compilations", "artists", "compilations", "bhangra"]
-    flag = True
-
-    movie_list = []
     soup = BeautifulSoup(url_data, 'html.parser')
-    for ul in soup.findAll('li'):               #Get all the links. Filter out only the links that belong to movie songs
-        link = ul.findAll('a')
-        for a in link:
-            url = a.get('href')
-            for prefix in blacklist:
-                if url.startswith(prefix):
-                    flag = False
-
-            if (flag):        
-                if a is not None and a is not "#":
-                    if not url.startswith('/') and not url.startswith('..') and not url.startswith('#'):
-                        if not url.startswith('http://') and not url.startswith('https'):                    
-                            movie_list.append(url)
-    
-    """data = soup.findAll('a')
-
-    movie_list = []
-    for a in data:
-        if a is not None and a is not "#":
-            if not a.get('href').startswith('/') and not a.get('href').startswith('..') and not a.get('href').startswith('#'):
-                if not a.get('href').startswith('http://') and not a.get('href').startswith('https'):
-                    movie_list.append(a.get('href', None))"""
-    """#print(link)
-    #data = soup.findAll('div', attrs={'class' : 'catalog-album-holder'})      #Get all the lines from HTML that are a part of ul with class = 'ctlg-holder'
+    data = soup.findAll('ul', attrs={'class' : 'ctlg-holder'})      #Get all the lines from HTML that are a part of ul with class = 'ctlg-holder'
 
     movie_list = []
     for div in data:
         links = div.findAll('a')    #Choose all the lines with links
         for a in links:
             if a is not None and a is not "#":
-                movie_list.append(a.get('href', None))"""
+                movie_list.append(a.get('href', None))
 
     print("Movie Names Obtained")
-    print(movie_list)
     return movie_list
 
 ############################################################## FUNCTION TO GET ALL THE SONG NAMES FROM A WEBPAGE ##################################################
@@ -198,20 +169,17 @@ def downloadAlphabetSongs(first_alphabet):
 
     for movie_url in get_movie_names(url_html):
         if not movie_url.startswith('..'):
-            alphabet_movie_list[count] = movie_url
+            alphabet_movie_list[str(count)] = movie_url
             count = count + 1
 
     movie_url = ""      #Stores the Movie URL
-    blacklist = ["a_list.html", "b_list.html", "c_list.html", "d_list.html", "e_list.html", "f_list.html", "g_list.html", "h_list.html", "i_list.html", "j_list.html", "k_list.html", "l_list.html", "m_list.html", "n_list.html", "o_list.html", "p_list.html", "q_list.html", "r_list.html", "s_list.html", "t_list.html", "u_list.html", "v_list.html", "w_list.html", "x_list.html", "y_list.html", "z_list.html", "numeric_list.html"]
-    for movie_id in range(0, count):
+    for movie_id in alphabet_movie_list:
         error_count = 0             #Reset error count for each movie
-
+        
         if not alphabet_movie_list[movie_id].startswith('http://'):         #Some movies have the complete URL. Omitting those
             if not alphabet_movie_list[movie_id] == '#':                    #Some movies have no URL. They have only #. Omitting those
-                if alphabet_movie_list[movie_id] not in blacklist:
-                    movie_url = "http://songspk.link/%s" % alphabet_movie_list[movie_id]
-                    print(movie_url)
-                    downloadMovieSongs(movie_url)
+                movie_url = "http://songspk.link/%s" % alphabet_movie_list[movie_id]
+        downloadMovieSongs(movie_url)
 
     """except:
         if(error_count_alphabet >= 10):         #End program if it could not download the movie list in 10 tries
