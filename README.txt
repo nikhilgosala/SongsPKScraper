@@ -4,3 +4,5 @@
 
 1 works the best and must be used over 3.
 2 must be used in case the user wishes to download Ghazals from the website.
+
+Install BeautifulSoup using "pip install BeautifulSoup4"
